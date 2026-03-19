@@ -6,16 +6,16 @@ process.on('uncaughtException', error => {
   console.error('UNCAUGHT EXCEPTION:', error);
 });
 
-
 require('dotenv').config();
 
 const express = require("express");
+const axios = require("axios"); // 👈 ADICIONADO
 const app = express();
 
-// Porta dinâmica do Render
+// Porta dinâmica
 const PORT = process.env.PORT || 3000;
 
-// Endpoint para uptime
+// Endpoint uptime
 app.get("/", (req, res) => {
   res.send("Bot Discord Online 🚀");
 });
@@ -37,7 +37,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// Evento correto (discord.js v14+)
+// Bot online
 client.once('ready', () => {
   console.log(`✅ Bot iniciado como ${client.user.tag}`);
 });
@@ -102,15 +102,28 @@ client.on('interactionCreate', async (interaction) => {
         estabelecimento: interaction.fields.getTextInputValue('estabelecimento'),
         plano: interaction.fields.getTextInputValue('plano'),
         assinatura: interaction.fields.getTextInputValue('assinatura'),
-        observacoes: interaction.fields.getTextInputValue('obs')
+        observacoes: interaction.fields.getTextInputValue('obs'),
+        responsavel: interaction.member.displayName
       };
 
       console.log("📩 Nova reativação recebida:", data);
 
+      // 🔥 ENVIA PARA N8N
+      try {
+        console.log("📤 Enviando para n8n...");
+        
+        await axios.post('https://multipedidos2.app.n8n.cloud/webhook/reativacoes', data);
+
+        console.log("✅ Enviado para n8n com sucesso");
+
+      } catch (err) {
+        console.error("❌ Erro ao enviar para n8n:", err.message);
+      }
+
+      // ENVIA PARA O CANAL DISCORD
       const canal = interaction.guild.channels.cache.get(process.env.CANAL_REATIVACAO);
 
       if (canal) {
-
         await canal.send(`
 🔄 **Nova Reativação**
 
@@ -120,13 +133,13 @@ Plano: ${data.plano}
 Assinatura: ${data.assinatura}
 Observações: ${data.observacoes}
 
-Responsável: ${interaction.member.displayName}
+Responsável: ${data.responsavel}
 `);
-
       } else {
         console.log("⚠ Canal de reativações não encontrado.");
       }
 
+      // RESPOSTA PARA USUÁRIO
       await interaction.reply({
         content: "✅ Reativação enviada com sucesso!",
         ephemeral: true
