@@ -120,7 +120,7 @@ Plano: ${data.plano}
 Assinatura: ${data.assinatura}
 Observações: ${data.observacoes}
 
-Responsável: ${interaction.user.username}
+Responsável: ${interaction.member.displayName}
 `);
 
       } else {
