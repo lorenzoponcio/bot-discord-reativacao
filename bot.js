@@ -72,7 +72,7 @@ client.on('interactionCreate', async (interaction) => {
 
       const assinatura = new TextInputBuilder()
         .setCustomId('assinatura')
-        .setLabel('Assinatura gerada? (Sim/Não)')
+        .setLabel('Precisa de assinatura? (Sim/Não)')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
