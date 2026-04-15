@@ -130,7 +130,7 @@ client.on('interactionCreate', async (interaction) => {
 CRM: ${data.crm}
 Estabelecimento: ${data.estabelecimento}
 Plano: ${data.plano}
-Assinatura: ${data.assinatura}
+Precisa de assinatura?: ${data.assinatura}
 Observações: ${data.observacoes}
 
 Responsável: ${data.responsavel}
