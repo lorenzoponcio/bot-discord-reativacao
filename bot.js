@@ -37,7 +37,7 @@ const client = new Client({
   intents: [GatewayIntentBits.Guilds]
 });
 
-// Bot online
+// BOT ONLINE
 client.once('ready', () => {
   console.log(`✅ Bot iniciado como ${client.user.tag}`);
 });
@@ -46,7 +46,7 @@ client.on('interactionCreate', async (interaction) => {
 
   try {
 
-    // COMANDO /reativacao
+    // COMANDO /REATIVACAO
     if (
       interaction.isChatInputCommand() &&
       interaction.commandName === 'reativacao'
@@ -82,7 +82,9 @@ client.on('interactionCreate', async (interaction) => {
       const telefone = new TextInputBuilder()
         .setCustomId('telefone')
         .setLabel('Contato do Cliente')
-        .setPlaceholder('(11) 99999-9999')
+        .setPlaceholder(
+          'Telefone atual do cliente para atualização no CRM'
+        )
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
@@ -93,7 +95,7 @@ client.on('interactionCreate', async (interaction) => {
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true);
 
-      // MÁXIMO 5 CAMPOS
+      // DISCORD ACEITA NO MÁXIMO 5 CAMPOS
       modal.addComponents(
         new ActionRowBuilder().addComponents(crm),
         new ActionRowBuilder().addComponents(estabelecimento),
@@ -107,7 +109,7 @@ client.on('interactionCreate', async (interaction) => {
       return;
     }
 
-    // ENVIO FORMULÁRIO
+    // ENVIO DO FORMULÁRIO
     if (
       interaction.isModalSubmit() &&
       interaction.customId === 'formReativacao'
@@ -115,7 +117,8 @@ client.on('interactionCreate', async (interaction) => {
 
       const data = {
 
-        crm: interaction.fields.getTextInputValue('crm'),
+        crm:
+          interaction.fields.getTextInputValue('crm'),
 
         estabelecimento:
           interaction.fields.getTextInputValue('estabelecimento'),
@@ -133,19 +136,26 @@ client.on('interactionCreate', async (interaction) => {
           interaction.member.displayName
       };
 
-      console.log("📩 Nova reativação recebida:", data);
+      console.log(
+        "📩 Nova reativação recebida:",
+        data
+      );
 
       // ENVIA PARA N8N
       try {
 
-        console.log("📤 Enviando para n8n...");
+        console.log(
+          "📤 Enviando para n8n..."
+        );
 
         await axios.post(
           'https://multipedidos2.app.n8n.cloud/webhook/reativacoes',
           data
         );
 
-        console.log("✅ Enviado para n8n com sucesso");
+        console.log(
+          "✅ Enviado para n8n com sucesso"
+        );
 
       } catch (err) {
 
@@ -155,7 +165,7 @@ client.on('interactionCreate', async (interaction) => {
         );
       }
 
-      // ENVIA NO CANAL DISCORD
+      // ENVIA PARA O CANAL DISCORD
       const canal =
         interaction.guild.channels.cache.get(
           process.env.CANAL_REATIVACAO
@@ -166,7 +176,8 @@ client.on('interactionCreate', async (interaction) => {
         await canal.send(`
 🔄 **Nova Reativação**
 
-CRM: ${data.crm}
+CRM:
+${data.crm}
 
 Estabelecimento:
 ${data.estabelecimento}
@@ -249,6 +260,9 @@ client.login(process.env.DISCORD_TOKEN)
   })
   .catch(err => {
 
-    console.error("❌ Erro no login:", err);
+    console.error(
+      "❌ Erro no login:",
+      err
+    );
 
   });
