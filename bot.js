@@ -9,7 +9,7 @@ process.on('uncaughtException', error => {
 require('dotenv').config();
 
 const express = require("express");
-const axios = require("axios"); // 👈 ADICIONADO
+const axios = require("axios");
 const app = express();
 
 // Porta dinâmica
@@ -70,6 +70,13 @@ client.on('interactionCreate', async (interaction) => {
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
+      // NOVO CAMPO
+      const telefone = new TextInputBuilder()
+        .setCustomId('telefone')
+        .setLabel('Contato do Cliente')
+        .setStyle(TextInputStyle.Short)
+        .setRequired(true);
+
       const assinatura = new TextInputBuilder()
         .setCustomId('assinatura')
         .setLabel('Precisa de assinatura? (Sim/Não)')
@@ -86,6 +93,7 @@ client.on('interactionCreate', async (interaction) => {
         new ActionRowBuilder().addComponents(crm),
         new ActionRowBuilder().addComponents(estabelecimento),
         new ActionRowBuilder().addComponents(plano),
+        new ActionRowBuilder().addComponents(telefone), // NOVO
         new ActionRowBuilder().addComponents(assinatura),
         new ActionRowBuilder().addComponents(obs)
       );
@@ -101,6 +109,10 @@ client.on('interactionCreate', async (interaction) => {
         crm: interaction.fields.getTextInputValue('crm'),
         estabelecimento: interaction.fields.getTextInputValue('estabelecimento'),
         plano: interaction.fields.getTextInputValue('plano'),
+
+        // NOVO CAMPO
+        telefone: interaction.fields.getTextInputValue('telefone'),
+
         assinatura: interaction.fields.getTextInputValue('assinatura'),
         observacoes: interaction.fields.getTextInputValue('obs'),
         responsavel: interaction.member.displayName
@@ -110,32 +122,45 @@ client.on('interactionCreate', async (interaction) => {
 
       // 🔥 ENVIA PARA N8N
       try {
+
         console.log("📤 Enviando para n8n...");
-        
-        await axios.post('https://multipedidos2.app.n8n.cloud/webhook/reativacoes', data);
+
+        await axios.post(
+          'https://multipedidos2.app.n8n.cloud/webhook/reativacoes',
+          data
+        );
 
         console.log("✅ Enviado para n8n com sucesso");
 
       } catch (err) {
+
         console.error("❌ Erro ao enviar para n8n:", err.message);
       }
 
       // ENVIA PARA O CANAL DISCORD
-      const canal = interaction.guild.channels.cache.get(process.env.CANAL_REATIVACAO);
+      const canal = interaction.guild.channels.cache.get(
+        process.env.CANAL_REATIVACAO
+      );
 
       if (canal) {
+
         await canal.send(`
 🔄 **Nova Reativação**
 
 CRM: ${data.crm}
 Estabelecimento: ${data.estabelecimento}
 Plano: ${data.plano}
+Contato do Cliente: ${data.telefone}
 Precisa de assinatura? ${data.assinatura}
-Observações: ${data.observacoes}
+
+Observações:
+${data.observacoes}
 
 Responsável: ${data.responsavel}
 `);
+
       } else {
+
         console.log("⚠ Canal de reativações não encontrado.");
       }
 
