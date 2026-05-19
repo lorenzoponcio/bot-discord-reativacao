@@ -43,84 +43,99 @@ client.once('ready', () => {
 });
 
 client.on('interactionCreate', async (interaction) => {
+
   try {
 
     // COMANDO /reativacao
-    if (interaction.isChatInputCommand() && interaction.commandName === 'reativacao') {
+    if (
+      interaction.isChatInputCommand() &&
+      interaction.commandName === 'reativacao'
+    ) {
 
       const modal = new ModalBuilder()
         .setCustomId('formReativacao')
         .setTitle('Formulário de Reativação');
 
+      // CRM
       const crm = new TextInputBuilder()
         .setCustomId('crm')
         .setLabel('CRM ID')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
+      // ESTABELECIMENTO
       const estabelecimento = new TextInputBuilder()
         .setCustomId('estabelecimento')
         .setLabel('Estabelecimento')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
+      // PLANO + ASSINATURA
       const plano = new TextInputBuilder()
         .setCustomId('plano')
-        .setLabel('Plano')
+        .setLabel('Plano + Precisa de assinatura?')
+        .setPlaceholder('Ex: Premium - Sim')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
-      // NOVO CAMPO
+      // CONTATO CLIENTE
       const telefone = new TextInputBuilder()
         .setCustomId('telefone')
         .setLabel('Contato do Cliente')
+        .setPlaceholder('(11) 99999-9999')
         .setStyle(TextInputStyle.Short)
         .setRequired(true);
 
-      const assinatura = new TextInputBuilder()
-        .setCustomId('assinatura')
-        .setLabel('Precisa de assinatura? (Sim/Não)')
-        .setStyle(TextInputStyle.Short)
-        .setRequired(true);
-
+      // OBSERVAÇÕES
       const obs = new TextInputBuilder()
         .setCustomId('obs')
         .setLabel('Observações')
         .setStyle(TextInputStyle.Paragraph)
         .setRequired(true);
 
+      // MÁXIMO 5 CAMPOS
       modal.addComponents(
         new ActionRowBuilder().addComponents(crm),
         new ActionRowBuilder().addComponents(estabelecimento),
         new ActionRowBuilder().addComponents(plano),
-        new ActionRowBuilder().addComponents(telefone), // NOVO
-        new ActionRowBuilder().addComponents(assinatura),
+        new ActionRowBuilder().addComponents(telefone),
         new ActionRowBuilder().addComponents(obs)
       );
 
       await interaction.showModal(modal);
+
       return;
     }
 
-    // ENVIO DO FORMULÁRIO
-    if (interaction.isModalSubmit() && interaction.customId === 'formReativacao') {
+    // ENVIO FORMULÁRIO
+    if (
+      interaction.isModalSubmit() &&
+      interaction.customId === 'formReativacao'
+    ) {
 
       const data = {
+
         crm: interaction.fields.getTextInputValue('crm'),
-        estabelecimento: interaction.fields.getTextInputValue('estabelecimento'),
-        plano: interaction.fields.getTextInputValue('plano'),
 
-        // NOVO CAMPO
-        telefone: interaction.fields.getTextInputValue('telefone'),
+        estabelecimento:
+          interaction.fields.getTextInputValue('estabelecimento'),
 
-        assinatura: interaction.fields.getTextInputValue('assinatura'),
-        observacoes: interaction.fields.getTextInputValue('obs'),
-        responsavel: interaction.member.displayName
+        plano:
+          interaction.fields.getTextInputValue('plano'),
+
+        telefone:
+          interaction.fields.getTextInputValue('telefone'),
+
+        observacoes:
+          interaction.fields.getTextInputValue('obs'),
+
+        responsavel:
+          interaction.member.displayName
       };
 
       console.log("📩 Nova reativação recebida:", data);
 
-      // 🔥 ENVIA PARA N8N
+      // ENVIA PARA N8N
       try {
 
         console.log("📤 Enviando para n8n...");
@@ -134,13 +149,17 @@ client.on('interactionCreate', async (interaction) => {
 
       } catch (err) {
 
-        console.error("❌ Erro ao enviar para n8n:", err.message);
+        console.error(
+          "❌ Erro ao enviar para n8n:",
+          err.message
+        );
       }
 
-      // ENVIA PARA O CANAL DISCORD
-      const canal = interaction.guild.channels.cache.get(
-        process.env.CANAL_REATIVACAO
-      );
+      // ENVIA NO CANAL DISCORD
+      const canal =
+        interaction.guild.channels.cache.get(
+          process.env.CANAL_REATIVACAO
+        );
 
       if (canal) {
 
@@ -148,47 +167,72 @@ client.on('interactionCreate', async (interaction) => {
 🔄 **Nova Reativação**
 
 CRM: ${data.crm}
-Estabelecimento: ${data.estabelecimento}
-Plano: ${data.plano}
-Contato do Cliente: ${data.telefone}
-Precisa de assinatura? ${data.assinatura}
+
+Estabelecimento:
+${data.estabelecimento}
+
+Plano + Assinatura:
+${data.plano}
+
+Contato do Cliente:
+${data.telefone}
 
 Observações:
 ${data.observacoes}
 
-Responsável: ${data.responsavel}
+Responsável:
+${data.responsavel}
 `);
 
       } else {
 
-        console.log("⚠ Canal de reativações não encontrado.");
+        console.log(
+          "⚠ Canal de reativações não encontrado."
+        );
       }
 
-      // RESPOSTA PARA USUÁRIO
+      // RESPOSTA USUÁRIO
       await interaction.reply({
-        content: "✅ Reativação enviada com sucesso!",
+
+        content:
+          "✅ Reativação enviada com sucesso!",
+
         ephemeral: true
       });
     }
 
   } catch (error) {
 
-    console.error("❌ Erro no interactionCreate:", error);
+    console.error(
+      "❌ Erro no interactionCreate:",
+      error
+    );
 
     if (interaction.isRepliable()) {
 
-      if (interaction.replied || interaction.deferred) {
+      if (
+        interaction.replied ||
+        interaction.deferred
+      ) {
 
         await interaction.followUp({
-          content: "❌ Ocorreu um erro ao processar a solicitação.",
+
+          content:
+            "❌ Ocorreu um erro ao processar a solicitação.",
+
           ephemeral: true
+
         }).catch(() => {});
 
       } else {
 
         await interaction.reply({
-          content: "❌ Ocorreu um erro ao processar a solicitação.",
+
+          content:
+            "❌ Ocorreu um erro ao processar a solicitação.",
+
           ephemeral: true
+
         }).catch(() => {});
       }
     }
@@ -198,5 +242,13 @@ Responsável: ${data.responsavel}
 console.log("Tentando logar no Discord...");
 
 client.login(process.env.DISCORD_TOKEN)
-  .then(() => console.log("✅ Login feito"))
-  .catch(err => console.error("❌ Erro no login:", err));
+  .then(() => {
+
+    console.log("✅ Login feito");
+
+  })
+  .catch(err => {
+
+    console.error("❌ Erro no login:", err);
+
+  });
